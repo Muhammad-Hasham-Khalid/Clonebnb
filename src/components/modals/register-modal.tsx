@@ -1,14 +1,16 @@
 "use client";
 
-import { useState } from "react";
-import { useRegisterModal } from "~/hooks/use-register-modal";
-import { SubmitHandler, useForm } from "react-hook-form";
-import { Modal } from "~/components/shared/modal";
-import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
+import { useMutation } from "@tanstack/react-query";
+import { SubmitHandler, useForm } from "react-hook-form";
+import { z } from "zod";
+import { Modal } from "~/components/shared/modal";
+import { useRegisterModal } from "~/hooks/use-register-modal";
+import { signUp } from "~/lib/auth/actions";
+import { Logger } from "~/lib/logger";
+import { Button } from "../shared/button";
 import { Heading } from "../shared/heading";
 import { Input } from "../shared/input";
-import { Button } from "../shared/button";
 
 const RegisterFormSchema = z.object({
   name: z.string().min(2, "Name is too short"),
@@ -19,7 +21,9 @@ type FieldValues = z.infer<typeof RegisterFormSchema>;
 
 export const RegisterModal = () => {
   const registerModal = useRegisterModal();
-  const [isLoading, setIsLoading] = useState(false);
+  const signUpMutation = useMutation({
+    mutationFn: signUp,
+  });
 
   const form = useForm({
     resolver: zodResolver(RegisterFormSchema),
@@ -38,17 +42,18 @@ export const RegisterModal = () => {
   } = form;
 
   const onSubmit: SubmitHandler<FieldValues> = async (data) => {
-    setIsLoading(true);
-    console.log(data);
-    setIsLoading(false);
-
-    form.reset();
-    registerModal.close();
+    Logger.info("Signing up", data);
+    signUpMutation.mutate(data, {
+      onSuccess(data) {
+        registerModal.close();
+        form.reset();
+      },
+    });
   };
 
   return (
     <Modal
-      disabled={isLoading}
+      disabled={signUpMutation.isPending}
       isOpen={registerModal.isOpen}
       onClose={registerModal.close}
       title="Register"

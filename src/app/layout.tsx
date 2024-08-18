@@ -4,6 +4,7 @@ import "./globals.css";
 import { Navbar } from "~/components/navbar";
 import { RegisterModal } from "~/components/modals/register-modal";
 import { Toaster } from "sonner";
+import { RootProvider } from "~/providers/root";
 
 const font = Nunito({ subsets: ["latin"] });
 
@@ -20,9 +21,11 @@ export default function RootLayout({ children }: RootLayoutProps) {
   return (
     <html lang="en">
       <body className={font.className}>
-        <RegisterModal />
-        <Navbar />
-        {children}
+        <RootProvider>
+          <RegisterModal />
+          <Navbar />
+          {children}
+        </RootProvider>
         <Toaster />
       </body>
     </html>
